@@ -15,23 +15,28 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from func import extract_text_from_pdf, get_structured_summary
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from datetime import datetime
 # Load environment variables
 load_dotenv()
 
 # Configure Gemini API
-
+mongo_uri = os.environ.get('MONGO_URI')
+client = MongoClient(mongo_uri, server_api=ServerApi('1'))
+db = client['document_analyzer']
+summaries_collection = db['summaries']
 app = Flask(__name__)
 CORS(app)  # Enable CORS to allow requests from React frontend
 
 
 @app.route('/api/summarize', methods=['POST'])
 def summarize_pdf():
-    """API endpoint to extract text from PDF and summarize it with Gemini"""
+    """API endpoint to extract text from PDF, summarize it with Gemini, and save to MongoDB"""
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     
     file = request.files['file']
-    
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
     
@@ -43,6 +48,19 @@ def summarize_pdf():
             
             # Get structured summary from Gemini
             summary_data = get_structured_summary(extracted_text)
+            
+            # Save to MongoDB
+            document = {
+                'filename': file.filename,
+                'summary': summary_data,
+                'created_at': datetime.now(),
+                'status': 'Completed'
+            }
+            
+            result = summaries_collection.insert_one(document)
+            
+            # Add the MongoDB ID to the response
+            summary_data['_id'] = str(result.inserted_id)
             
             return jsonify(summary_data)
         except Exception as e:
