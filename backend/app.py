@@ -67,6 +67,37 @@ def summarize_pdf():
             return jsonify({'error': str(e)}), 500
     else:
         return jsonify({'error': 'File must be a PDF'}), 400
+    
+from bson.objectid import ObjectId
+@app.route('/api/document/<document_id>', methods=['GET'])
+def get_document(document_id):
+    try:
+        # Convert string ID to ObjectId
+        doc_id = ObjectId(document_id)
+        document = summaries_collection.find_one({"_id": doc_id})
+        
+        if document:
+            # Convert ObjectId to string for JSON serialization
+            document['_id'] = str(document['_id'])
+            print(document)
+            return jsonify(document)
+        else:
+            return jsonify({"error": "Document not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/documents', methods=['GET'])
+def get_documents():
+    try:
+        documents = list(summaries_collection.find({}, {"_id": 1, "filename": 1, "created_at": 1}))
+        
+        # Convert ObjectId to string for each document
+        for doc in documents:
+            doc['_id'] = str(doc['_id'])
+            
+        return jsonify(documents)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 #-----------------------------------------------------------------------------------------------------------
 UPLOAD_FOLDER = 'uploads'
 

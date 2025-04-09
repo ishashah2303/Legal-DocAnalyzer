@@ -17,7 +17,6 @@ const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/summarize" element={<SummaryPage />} />
             <Route path="/history" element={<HistoryPage />} />
-            <Route path="/summary/:id" element={<SummaryView />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/try" element={<LandingPage />} />
           </Routes>
