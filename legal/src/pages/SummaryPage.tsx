@@ -289,10 +289,16 @@ const SummaryPage: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
       const response = await fetch('http://localhost:5000/api/summarize', {
         method: 'POST',
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {

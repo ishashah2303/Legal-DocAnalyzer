@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Link } from 'react-router-dom';
+// Hero section with fixed Get Started button
 const Hero: React.FC = () => {
   return (
     <div className="relative overflow-hidden bg-[#F5F0EB] rounded-lg shadow-lg">
@@ -11,14 +13,15 @@ const Hero: React.FC = () => {
         <p className="text-xl text-gray-700 max-w-2xl mb-8 leading-relaxed">
           Unlock the power of Gemini AI to analyze and summarize your complex legal documents, contracts, and agreements in seconds.
         </p>
-        <div className="flex flex-wrap gap-4">
-          <button className="bg-[#A0522D] text-white py-3 px-8 rounded-md hover:bg-[#8B4513] transition-colors font-medium text-lg shadow-md">
-            Get Started
-          </button>
-          <button className="bg-white text-[#A0522D] border border-[#A0522D] py-3 px-8 rounded-md hover:bg-[#F9F5F2] transition-colors font-medium text-lg shadow-sm">
-            Learn More
-          </button>
-        </div>
+        {/* <div className="flex flex-wrap gap-4">
+          <Link to='/register'>
+            <button className="bg-[#A0522D] text-white py-3 px-8 rounded-md hover:bg-[#8B4513] transition-colors font-medium text-lg shadow-md">
+              Get Started
+            </button>
+          </Link>
+          
+          
+        </div> */}
       </div>
       <div className="absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4 opacity-10">
         <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 24 24" fill="none" stroke="#A0522D" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round">
@@ -32,7 +35,6 @@ const Hero: React.FC = () => {
     </div>
   );
 };
-
 // Features section for landing page
 const Features: React.FC = () => {
   const features = [
@@ -113,7 +115,5 @@ const HomePage: React.FC = () => {
     </div>
   );
 };
-
-
 
 export default HomePage;

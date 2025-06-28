@@ -16,7 +16,13 @@ function HistoryPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/documents');
+       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await fetch('http://localhost:5000/api/documents',{headers: {
+        'Authorization': `Bearer ${token}`
+      }});
       if (!response.ok) {
         throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
       }
