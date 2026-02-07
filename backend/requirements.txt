@@ -11,6 +11,7 @@ tqdm
 sentence-transformers
 langchain
 langchain-community
+langchain-core
 langchain-google-genai
 google-genai
 newsapi-python
