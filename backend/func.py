@@ -9,7 +9,7 @@ import re
 import fitz  # PyMuPDF
 import pandas as pd
 from tqdm import tqdm
-from langchain_text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings

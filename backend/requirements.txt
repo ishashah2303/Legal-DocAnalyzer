@@ -18,3 +18,4 @@ newsapi-python
 faiss-cpu
 werkzeug
 gunicorn
+langchain-text-splitters
