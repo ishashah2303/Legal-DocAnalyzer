@@ -17,6 +17,6 @@ faiss-cpu
 werkzeug
 gunicorn
 langchain==0.0.352
+langchain-core==0.1.32
 langchain-community==0.0.20
-langchain-core==0.1.23
 langchain-text-splitters==0.0.1
