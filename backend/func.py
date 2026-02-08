@@ -121,7 +121,6 @@ from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 
 sessions = {}
-os.environ["GOOGLE_API_KEY"] = "AIzaSyAi7-EM7_ka_DGcDxw22KsY9xFcf4MIyT4"
 def get_or_create_conversation(session_id):
     """Get existing conversation or create a new one for the session"""
     if session_id not in sessions:
