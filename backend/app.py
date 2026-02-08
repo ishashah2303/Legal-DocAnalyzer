@@ -621,5 +621,254 @@ def list_contracts():
             "status": "error",
             "message": f"Error listing contracts: {str(e)}"
         }), 500
-if __name__ == '__main__':
-    app.run(debug=True)
+    
+
+def clean_html_tags(text):
+    """Remove HTML tags from text for PDF generation"""
+    # Remove HTML tags but keep the content
+    clean_text = re.sub(r'<[^>]+>', '', text)
+    # Replace HTML entities
+    clean_text = clean_text.replace('&amp;', '&')
+    clean_text = clean_text.replace('&lt;', '<')
+    clean_text = clean_text.replace('&gt;', '>')
+    clean_text = clean_text.replace('&quot;', '"')
+    clean_text = clean_text.replace('&#39;', "'")
+    return clean_text
+
+def convert_markdown_to_reportlab(text):
+    """Convert markdown-style text to ReportLab flowables"""
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=12,
+        textColor=colors.Color(160/255, 82/255, 45/255),  # #A0522D
+        alignment=TA_LEFT
+    )
+    
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=14,
+        spaceBefore=12,
+        spaceAfter=6,
+        textColor=colors.Color(160/255, 82/255, 45/255),
+        alignment=TA_LEFT
+    )
+    
+    body_style = ParagraphStyle(
+        'CustomBody',
+        parent=styles['Normal'],
+        fontSize=11,
+        spaceAfter=6,
+        alignment=TA_JUSTIFY,
+        leftIndent=0,
+        rightIndent=0
+    )
+    
+    indented_style = ParagraphStyle(
+        'CustomIndented',
+        parent=styles['Normal'],
+        fontSize=11,
+        spaceAfter=6,
+        alignment=TA_JUSTIFY,
+        leftIndent=20,
+        rightIndent=0
+    )
+    
+    flowables = []
+    lines = text.split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            flowables.append(Spacer(1, 6))
+            continue
+            
+        # Handle bold headers (***text*** or **text**)
+        if line.startswith('***') and line.endswith('***'):
+            clean_line = clean_html_tags(line[3:-3])
+            flowables.append(Paragraph(f"<b>{clean_line}</b>", title_style))
+        elif line.startswith('**') and line.endswith('**'):
+            clean_line = clean_html_tags(line[2:-2])
+            flowables.append(Paragraph(f"<b>{clean_line}</b>", heading_style))
+        # Handle numbered lists
+        elif re.match(r'^\d+\.', line):
+            clean_line = clean_html_tags(line)
+            # Convert **text** to <b>text</b> for ReportLab
+            clean_line = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', clean_line)
+            clean_line = re.sub(r'\*(.*?)\*', r'<i>\1</i>', clean_line)
+            flowables.append(Paragraph(clean_line, body_style))
+        # Handle bullet points with indentation
+        elif line.strip().startswith('*   '):
+            clean_line = clean_html_tags(line.strip()[4:])  # Remove '*   '
+            clean_line = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', clean_line)
+            clean_line = re.sub(r'\*(.*?)\*', r'<i>\1</i>', clean_line)
+            flowables.append(Paragraph(f"• {clean_line}", indented_style))
+        # Handle regular paragraphs
+        else:
+            clean_line = clean_html_tags(line)
+            # Convert **text** to <b>text</b> for ReportLab
+            clean_line = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', clean_line)
+            clean_line = re.sub(r'\*(.*?)\*', r'<i>\1</i>', clean_line)
+            if clean_line:
+                flowables.append(Paragraph(clean_line, body_style))
+    
+    return flowables
+
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+from reportlab.pdfgen import canvas
+import re
+
+
+@app.route('/api/download-clause-pdf', methods=['POST'])
+def download_clause_pdf():
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        # Extract data
+        query = data.get('query', 'Legal Document Request')
+        generated_clause = data.get('generated_clause', '')
+        sources = data.get('sources', [])
+        
+        if not generated_clause:
+            return jsonify({'error': 'No legal clause content provided'}), 400
+        
+        # Create PDF in memory
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=18
+        )
+        
+        # Styles
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'DocumentTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=20,
+            textColor=colors.Color(160/255, 82/255, 45/255),
+            alignment=TA_CENTER
+        )
+        
+        section_style = ParagraphStyle(
+            'SectionHeader',
+            parent=styles['Heading2'],
+            fontSize=14,
+            spaceBefore=15,
+            spaceAfter=10,
+            textColor=colors.Color(160/255, 82/255, 45/255),
+            alignment=TA_LEFT
+        )
+        
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontSize=10,
+            spaceAfter=8,
+            alignment=TA_JUSTIFY
+        )
+        
+        # Build PDF content
+        story = []
+        
+        # Title
+        story.append(Paragraph("Legal Document Draft", title_style))
+        story.append(Spacer(1, 20))
+        
+        # Generated date
+        current_date = datetime.now().strftime("%B %d, %Y")
+        story.append(Paragraph(f"<i>Generated on: {current_date}</i>", normal_style))
+        story.append(Spacer(1, 20))
+        
+        # Request section
+        # story.append(Paragraph("Your Request", section_style))
+        # story.append(Paragraph(query, normal_style))
+        # story.append(Spacer(1, 20))
+        
+        # Legal clause section
+        story.append(Paragraph("Draft Legal Clause", section_style))
+        
+        # Convert the legal clause content
+        clause_flowables = convert_markdown_to_reportlab(generated_clause)
+        story.extend(clause_flowables)
+        
+        story.append(Spacer(1, 30))
+        
+        # # Sources section
+        # if sources and len(sources) > 0:
+        #     story.append(Paragraph("Reference Sources", section_style))
+            
+        #     # Create table data
+        #     table_data = [['Source', 'Contract Type', 'Contract ID']]
+        #     for i, source in enumerate(sources, 1):
+        #         table_data.append([
+        #             f"Source {i}",
+        #             source.get('contract_type', 'N/A'),
+        #             source.get('contract_id', 'N/A')
+        #         ])
+            
+        #     # Create table
+        #     table = Table(table_data, colWidths=[1.5*inch, 2.5*inch, 2*inch])
+        #     table.setStyle(TableStyle([
+        #         ('BACKGROUND', (0, 0), (-1, 0), colors.Color(232/255, 216/255, 201/255)),
+        #         ('TEXTCOLOR', (0, 0), (-1, 0), colors.Color(107/255, 107/255, 107/255)),
+        #         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        #         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        #         ('FONTSIZE', (0, 0), (-1, 0), 10),
+        #         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        #         ('FONTSIZE', (0, 1), (-1, -1), 9),
+        #         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        #         ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        #         ('GRID', (0, 0), (-1, -1), 1, colors.Color(232/255, 216/255, 201/255))
+        #     ]))
+            
+        #     story.append(table)
+        
+        # story.append(Spacer(1, 30))
+        
+        # Footer
+        story.append(Paragraph(
+            "<i>This document was generated using AI technology and should be reviewed by a qualified legal professional before use.</i>",
+            normal_style
+        ))
+        
+        # Build PDF
+        doc.build(story)
+        
+        # Prepare file for download
+        buffer.seek(0)
+        
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=f'legal_clause_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf',
+            mimetype='application/pdf'
+        )
+        
+    except Exception as e:
+        print(f"Error generating PDF: {str(e)}")
+        return jsonify({'error': f'Failed to generate PDF: {str(e)}'}), 50
+
+
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
