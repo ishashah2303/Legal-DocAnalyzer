@@ -9,7 +9,7 @@ import re
 import fitz  # PyMuPDF
 import pandas as pd
 from tqdm import tqdm
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -148,7 +148,8 @@ def get_or_create_conversation(session_id):
             "You are a legal assistant specialized in the Indian legal system. "
             "You have comprehensive knowledge of Indian laws, statutes, case laws, and legal procedures. "
             "Provide accurate, reliable, and precise legal information relevant to Indian law and always consider local legal context. "
-            "Cite important statutes, cases, or legal principles when appropriate."
+            "Respond in clear, conversational language that is easy to understand for someone who has not studied law. Make sure the response is summarized well making sure it doesnt miss the important points.Give a brief response unless asked otherwise."
+            "Use proper formatting with bold text, bullet points, and paragraphs to make your responses readable and engaging."
         )
         
         # Add the system prompt to the conversation memory as initial context
