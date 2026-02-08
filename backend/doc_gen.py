@@ -81,7 +81,7 @@ def split_contracts(contracts, chunk_size=1000, chunk_overlap=200):
 import pickle
 
 
-def generate_embeddings(chunks, model_name="all-MiniLM-L6-v2", save_path="embeddings.pkl"):
+def generate_embeddings(chunks, model_name="all-MiniLM-L6-v2", save_path="backend/embeddings.pkl"):
     """
     Generate or load embeddings for each text chunk.
     """
@@ -109,7 +109,7 @@ def generate_embeddings(chunks, model_name="all-MiniLM-L6-v2", save_path="embedd
 
 
 # Step 4: Set up vector database
-def setup_vector_db(chunks, model_name="all-MiniLM-L6-v2", save_path="faiss_index"):
+def setup_vector_db(chunks, model_name="all-MiniLM-L6-v2", save_path="backend/faiss_index"):
     """
     Create or load a FAISS vector database from the chunks.
     """
@@ -214,7 +214,8 @@ def contract_drafting_pipeline(query, rag_chain):
 
 # Main execution
 if __name__ == "__main__":
-    base_dir = "full_contract_pdf"  # Replace with your actual path
+
+    base_dir = "backend/full_contract_pdf"  # Replace with your actual path
 
     # Provide your Google API key here
     GOOGLE_API_KEY ="AIzaSyAi7-EM7_ka_DGcDxw22KsY9xFcf4MIyT4"

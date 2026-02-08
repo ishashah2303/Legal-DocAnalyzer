@@ -14,12 +14,12 @@ from sentence_transformers import SentenceTransformer
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.llms import HuggingFaceHub
-from langchain.chains import RetrievalQA
+from langchain_core.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from google import genai
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.chains import create_retrieval_chain
+from langchain_core.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 import pickle
 # Load environment variables
@@ -117,7 +117,7 @@ def allowed_file(filename):
 
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import ConversationChain
+from langchain_core.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 
 sessions = {}
