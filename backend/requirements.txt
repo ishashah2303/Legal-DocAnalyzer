@@ -16,7 +16,7 @@ newsapi-python
 faiss-cpu
 werkzeug
 gunicorn
-langchain==0.0.352
-langchain-core==0.1.32
-langchain-community==0.0.20
+langchain==0.0.331
+langchain-community==0.0.6
 langchain-text-splitters==0.0.1
+langsmith==0.0.70
